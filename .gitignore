@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Dataset
+data/raw/
+data/processed/
+data/clean/
+
+# Trained models
+models/*.pth
+models/*.pt
+models/*.onnx
+
+# Generated results
+results/*.json
+results/*.png
+
+# Local test images
+test_cat.jpg
+test_dog.jpg
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
