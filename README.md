@@ -155,7 +155,7 @@ Cat-Dog-Classifier/
 Clone the repository:
 
 ```bash
-git clone <your-repository-url>
+git clone https://github.com/khalidjmonday/Cat-Dog-Classifier
 cd Cat-Dog-Classifier
 ```
 
