@@ -22,8 +22,8 @@ models/*.pt
 models/*.onnx
 
 # Generated results
-results/*.json
-results/*.png
+results/*
+!results/confusion_matrix.png
 
 # Local test images
 test_cat.jpg
@@ -36,3 +36,6 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
+
+# Keep final evaluation visualization
+!results/confusion_matrix.png
