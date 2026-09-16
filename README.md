@@ -274,8 +274,8 @@ The model correctly predicts the uploaded image along with confidence probabilit
 This project was developed collaboratively by:
 
 * **Yashaswi**
-* **Ankush**
-* **Mayank**
+* **Ankush Kumar**
+* **Mayank Kunwar**
 * **Kunal**
 
 ---
