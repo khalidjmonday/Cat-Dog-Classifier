@@ -12,13 +12,13 @@ The goal of this project is to build a reliable image classifier capable of dist
 
 The project includes the complete ML workflow:
 
-* Dataset preparation
-* Dataset inspection
-* Duplicate detection
-* Data leakage prevention
-* Model training using EfficientNet-B0
-* Model evaluation
-* Image prediction on unseen images
+- Dataset preparation
+- Dataset inspection
+- Duplicate detection
+- Data leakage prevention
+- Model training using EfficientNet-B0
+- Model evaluation
+- Image prediction on unseen images
 
 Rather than only training a model, this project also focuses on validating dataset quality before evaluating performance.
 
@@ -26,16 +26,18 @@ Rather than only training a model, this project also focuses on validating datas
 
 ## ✨ Features
 
-* Binary image classification for Cats and Dogs
-* EfficientNet-B0 transfer learning architecture
-* GPU training with CUDA support
-* Dataset preparation scripts
-* Exact duplicate detection across dataset splits
-* Near-duplicate inspection utilities
-* Automatic duplicate cleanup
-* Model evaluation with multiple metrics
-* Confusion matrix generation
-* Prediction script for custom images
+- Binary image classification for Cats and Dogs
+- EfficientNet-B0 transfer learning architecture
+- GPU training with CUDA support
+- Dataset preparation scripts
+- Exact duplicate detection across dataset splits
+- Near-duplicate inspection utilities
+- Automatic duplicate cleanup
+- Model evaluation with multiple metrics
+- Confusion matrix generation
+- Prediction script for custom images
+- Data augmentation for improved generalization
+- Regularization using dropout and label smoothing
 
 ---
 
@@ -43,14 +45,18 @@ Rather than only training a model, this project also focuses on validating datas
 
 The classifier uses **EfficientNet-B0** implemented with PyTorch.
 
-**Configuration**
+### Configuration
 
-* Framework: PyTorch
-* Architecture: EfficientNet-B0
-* Image Size: 224 × 224
-* Classes: Cat, Dog
-* Optimizer and training pipeline implemented in `train.py`
-* CUDA GPU acceleration supported
+- Framework: PyTorch
+- Architecture: EfficientNet-B0
+- Image Size: 224 × 224
+- Classes: Cat, Dog
+- Optimizer: AdamW
+- Loss Function: Cross-Entropy Loss with label smoothing
+- Dropout: 0.3
+- CUDA GPU acceleration supported
+
+The training pipeline also uses data augmentation techniques such as random cropping, horizontal flipping, rotation, color jitter, and affine transformations to improve robustness to variations in real-world images.
 
 ---
 
@@ -87,8 +93,8 @@ The workflow included:
 
 Final verification confirmed:
 
-* **0 exact cross-split duplicate groups**
-* Validation and test sets remained untouched during cleanup
+- **0 exact cross-split duplicate groups**
+- Validation and test sets remained untouched during cleanup
 
 This helped produce a more trustworthy evaluation pipeline.
 
@@ -98,6 +104,24 @@ This helped produce a more trustworthy evaluation pipeline.
 
 The final model was evaluated on **2,435 unseen test images**.
 
+| Metric    |                                              Score |
+| --------- | -------------------------------------------------: |
+| Accuracy  |                                         **99.55%** |
+| Precision | **Not recalculated after the latest training run** |
+| Recall    | **Not recalculated after the latest training run** |
+| F1 Score  | **Not recalculated after the latest training run** |
+
+The latest training run achieved:
+
+- Best validation accuracy: **99.92%**
+- Final test accuracy: **99.55%**
+
+The previous evaluation metrics shown below belong to the earlier model version and should not be presented as the results of the latest model.
+
+### Previous Model Evaluation
+
+For reference, the previous model achieved:
+
 | Metric    |      Score |
 | --------- | ---------: |
 | Accuracy  | **99.88%** |
@@ -105,18 +129,31 @@ The final model was evaluated on **2,435 unseen test images**.
 | Recall    | **99.86%** |
 | F1 Score  | **99.89%** |
 
-### Confusion Matrix
+Previous confusion matrix:
 
 ![Confusion Matrix](results/confusion_matrix.png)
-
-Confusion Matrix:
 
 | Actual / Predicted |  Cat |  Dog |
 | ------------------ | ---: | ---: |
 | Cat                | 1049 |    1 |
 | Dog                |    2 | 1383 |
 
-Only **3 images** were misclassified out of **2,435** test samples.
+These metrics correspond to the previous training configuration.
+
+---
+
+## 🌎 Generalization Testing
+
+The updated training pipeline was tested on external dog images that had previously exposed generalization problems.
+
+| Image            | Result           |
+| ---------------- | ---------------- |
+| `test_dog4.jpeg` | **DOG - 92.52%** |
+| `test_dog25.jpg` | **DOG - 83.05%** |
+
+The same model was also tested using additional blurred and varied images during local testing.
+
+These tests demonstrated improved behavior on images outside the original held-out dataset.
 
 ---
 
@@ -145,153 +182,3 @@ Cat-Dog-Classifier/
 ├── .gitignore
 └── README.md
 ```
-
-> **Note:** Trained model weights (`best_model.pth`) and datasets are excluded from GitHub because of their large size.
-
----
-
-## ⚙️ Installation
-
-Clone the repository:
-
-```bash
-git clone https://github.com/khalidjmonday/Cat-Dog-Classifier
-cd Cat-Dog-Classifier
-```
-
-Create a virtual environment:
-
-```bash
-python -m venv .venv
-```
-
-Activate it on Windows:
-
-```bash
-.venv\Scripts\activate
-```
-
-Install the required Python libraries:
-
-```bash
-pip install torch torchvision pillow scikit-learn matplotlib ImageHash
-```
-
----
-
-## 🚀 Training
-
-To train the model:
-
-```bash
-python src/train.py
-```
-
-The best model checkpoint will be saved inside:
-
-```text
-models/best_model.pth
-```
-
----
-
-## 📈 Evaluation
-
-Evaluate the trained model on the clean test dataset:
-
-```bash
-python src/evaluate.py
-```
-
-This generates:
-
-* Accuracy
-* Precision
-* Recall
-* F1 Score
-* Classification Report
-* Confusion Matrix
-* Evaluation metrics JSON
-
----
-
-## 🔮 Predict Your Own Image
-
-Use any cat or dog image.
-
-Example:
-
-```bash
-python src/predict.py test_cat.jpg
-```
-
-Example output:
-
-```text
-============================================================
-                 CAT vs DOG CLASSIFIER
-============================================================
-
-Image: test_cat.jpg
-
-🐱 Prediction : CAT
-Confidence : 100.00%
-
-Probabilities
-
-CAT : 100.00%
-DOG : 0.00%
-
-============================================================
-```
-
-Another example:
-
-```bash
-python src/predict.py test_dog.jpg
-```
-
-The model correctly predicts the uploaded image along with confidence probabilities.
-
----
-
-## 🛠 Technologies Used
-
-* Python
-* PyTorch
-* Torchvision
-* EfficientNet-B0
-* Pillow
-* Scikit-learn
-* Matplotlib
-* ImageHash
-* CUDA (GPU Training)
-
----
-
-## 👥 Team Contributors
-
-This project was developed collaboratively by:
-
-* **Yashaswi**
-* **Ankush Kumar**
-* **Mayank Kunwar**
-* **Kunal**
-
----
-
-## 🔮 Future Improvements
-
-* Cat breed classification
-* Dog breed classification
-* Web interface for image upload
-* Mobile application integration
-* AI veterinary assistant for pet image analysis
-* Nearby veterinary clinic integration
-* Online appointment booking
-
----
-
-## 📜 License
-
-This project is created for educational and academic purposes.

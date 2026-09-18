@@ -1,12 +1,11 @@
-from pathlib import Path
 import json
+from pathlib import Path
 
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, WeightedRandomSampler
-from torchvision import datasets, transforms, models
+from torchvision import datasets, models, transforms
 from torchvision.models import EfficientNet_B0_Weights
-
 
 # ============================================================
 # CONFIGURATION
@@ -17,7 +16,7 @@ MODEL_DIR = Path("models")
 RESULTS_DIR = Path("results")
 
 BATCH_SIZE = 32
-NUM_EPOCHS = 10
+NUM_EPOCHS = 15
 LEARNING_RATE = 0.0001
 IMAGE_SIZE = 224
 
@@ -49,15 +48,40 @@ if torch.cuda.is_available():
 # DATA TRANSFORMS
 # ============================================================
 
+# Training augmentation is intentionally stronger than before.
+# The goal is to make the model robust to different:
+# - image crops
+# - zoom levels
+# - positions
+# - lighting
+# - colors
+# - orientations
+#
+# This helps reduce dependence on dataset-specific visual patterns.
+
 train_transforms = transforms.Compose([
-    transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+    transforms.Resize(256),
+
+    transforms.RandomResizedCrop(
+        IMAGE_SIZE,
+        scale=(0.70, 1.0)
+    ),
 
     transforms.RandomHorizontalFlip(p=0.5),
-    transforms.RandomRotation(10),
+
+    transforms.RandomRotation(15),
+
     transforms.ColorJitter(
         brightness=0.2,
         contrast=0.2,
-        saturation=0.2
+        saturation=0.2,
+        hue=0.05
+    ),
+
+    transforms.RandomAffine(
+        degrees=0,
+        translate=(0.1, 0.1),
+        scale=(0.9, 1.1)
     ),
 
     transforms.ToTensor(),
@@ -69,8 +93,13 @@ train_transforms = transforms.Compose([
 ])
 
 
+# Validation and test data are NOT randomly augmented.
+# They use deterministic preprocessing.
+
 val_test_transforms = transforms.Compose([
-    transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+    transforms.Resize(256),
+
+    transforms.CenterCrop(IMAGE_SIZE),
 
     transforms.ToTensor(),
 
@@ -190,10 +219,16 @@ weights = EfficientNet_B0_Weights.DEFAULT
 model = models.efficientnet_b0(weights=weights)
 
 
-# Replace the final classifier
-model.classifier[1] = nn.Linear(
-    model.classifier[1].in_features,
-    2
+# ============================================================
+# REPLACE FINAL CLASSIFIER
+# ============================================================
+
+model.classifier[1] = nn.Sequential(
+    nn.Dropout(p=0.3),
+    nn.Linear(
+        model.classifier[1].in_features,
+        2
+    )
 )
 
 model = model.to(device)
@@ -203,7 +238,12 @@ model = model.to(device)
 # LOSS + OPTIMIZER
 # ============================================================
 
-criterion = nn.CrossEntropyLoss()
+# Label smoothing reduces extreme overconfidence and
+# encourages better generalization.
+
+criterion = nn.CrossEntropyLoss(
+    label_smoothing=0.1
+)
 
 optimizer = torch.optim.AdamW(
     model.parameters(),
@@ -421,7 +461,11 @@ with torch.no_grad():
         images = images.to(device, non_blocking=True)
         labels = labels.to(device, non_blocking=True)
 
-        outputs = model(images)
+        with torch.amp.autocast(
+            device_type="cuda",
+            enabled=use_amp
+        ):
+            outputs = model(images)
 
         _, predicted = torch.max(outputs, 1)
 
